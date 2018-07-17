@@ -1,5 +1,5 @@
 {
-  "name": "http-message",
+  "name": "hypermessage",
   "version": "0.0.1",
   "description": "Create RFC-7230-compliant plaintext HTTP messages",
   "main": "index.js",
