@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 // Build an RFC-7230 compliant plaintext HTTP message
-module.exports.build = function(r) {
+module.exports.build = function (r) {
   let str = `${r.method} ${r.endpoint} HTTP/${r.httpVersion || '1.1'}\n`;
   if (r.headers) {
     Object.keys(r.headers).forEach((key) => {
@@ -30,4 +30,56 @@ module.exports.build = function(r) {
   str += '\n';
   str += r.body || '';
   return str;
+};
+
+
+module.exports.parse = function (m) {
+  const split = /([^\n]+)\n([\W\w]+?\n)\n([\W\w]+)/.exec(m);
+  const firstLine = /HTTP\/([^ ]+?) ([\d]+) [\W\w]+?/m.exec(split[1]);
+
+  const httpVersion = firstLine[1];
+  const status = parseInt(firstLine[2], 10);
+  const headerRegion = split[2];
+  const body = split[3];
+
+  const headerRegex = /^([^:\n]+?):[ ]+([\W\w]+?)$/gm;
+  const headers = {};
+  while (h = headerRegex.exec(headerRegion)) {
+    headers[h[1]] = h[2];
+  };
+
+  return {
+    status,
+    httpVersion,
+    headers,
+    body,
+  };
+};
+
+module.exports.buildMultipart = function (parts, boundary, options) {
+  options = options || {
+    headers: {},
+    autoContentLength: false,
+  };
+
+  const headers = Object.keys(options.headers)
+    .map(key => `${key}: ${options.headers[key]}\n`)
+    .join('');
+
+  let ret = '';
+  parts.forEach(p => {
+    ret += `--${boundary}\n`;
+    ret += headers;
+    if (options.autoContentLength) {
+      ret += `Content-Length: ${Buffer.byteLength(p, 'utf8')}\n`;
+    }
+    ret += `\n${p}\n`;
+  });
+
+  return `${ret}--${boundary}--`;
+};
+
+module.exports.parseMultipart = function(m, boundary) {
+  boundary = boundary ? `--${boundary}` : /^--[^\n]+(?:--)?/gm;
+  return m.split(boundary).slice(1, -1);
 };
