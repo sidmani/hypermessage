@@ -1,6 +1,6 @@
 {
   "name": "hypermessage",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create RFC-7230-compliant plaintext HTTP messages",
   "repository": {
     "type": "git",
