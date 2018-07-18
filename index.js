@@ -34,7 +34,7 @@ module.exports.build = function (r) {
 
 
 module.exports.parse = function (m) {
-  const split = /([^\n]+)\n([\W\w]+?\n)\n([\W\w]+)/.exec(m);
+  const split = /([^\n]+)[\r\n]([\W\w]+?\n)[\r\n]([\W\w]+)/.exec(m);
   const firstLine = /HTTP\/([^ ]+?) ([\d]+) [\W\w]+?/m.exec(split[1]);
 
   const httpVersion = firstLine[1];
@@ -49,8 +49,8 @@ module.exports.parse = function (m) {
   };
 
   return {
-    status,
     httpVersion,
+    status,
     headers,
     body,
   };
@@ -81,5 +81,5 @@ module.exports.buildMultipart = function (parts, boundary, options) {
 
 module.exports.parseMultipart = function(m, boundary) {
   boundary = boundary ? `--${boundary}` : /^--[^\n]+(?:--)?/gm;
-  return m.split(boundary).slice(1, -1);
+  return m.split(boundary).slice(1, -1).map(p => /\n(HTTP[\W\w]+)/.exec(p)[1]);
 };
